@@ -84,7 +84,20 @@ public sealed class AuthService(
     public async Task LogoutAsync(Guid userId, Guid sessionId, CancellationToken ct = default)
     {
         // TODO: pronađite odgovarajuću aktivnu sesiju te azurirajte relevantne Revoked stupce s vremenskom oznakom i razlogom invalidacije.
-        throw new NotImplementedException();
+        // 1. Pronađi aktivnu sesiju tog korisnika (po ID-u sesije I ID-u korisnika).
+        var session = await db.UserSessions
+            .SingleOrDefaultAsync(s => s.Id == sessionId && s.UserId == userId && s.RevokedAt == null, ct);
+
+        // Ako sesije nema (ili je već opozvana), nema što opozvati.
+        if (session is null)
+            return;
+
+        // 2. i 3. Označi sesiju kao opozvanu.
+        session.RevokedAt = DateTimeOffset.UtcNow;
+        session.RevocationReason = "manualLogout";
+
+        // 4. Spremi promjenu u bazu.
+        await db.SaveChangesAsync(ct);
     }
 
     public async Task LogoutAllAsync(Guid userId, CancellationToken ct = default)
