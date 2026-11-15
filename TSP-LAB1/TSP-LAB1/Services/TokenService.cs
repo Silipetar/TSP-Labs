@@ -35,8 +35,11 @@ public sealed class TokenService(IOptions<JwtOptions> options) : ITokenService
         var claims = new List<Claim>
         {
             //TODO: nadopisati odgovarajuce tvrdnje za identitet, sesiju i rolu korisnika.
-            new("av", user.AuthVersion.ToString()),
-            new(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
+             new(JwtRegisteredClaimNames.Sub, user.Id.ToString()),   // tko je korisnik
+            new("role", user.Role),                                 // koja mu je uloga
+            new("sid", sessionId.ToString()),                       // koja je sesija
+            new("av", user.AuthVersion.ToString()),                 // verzija autentikacije (već postoji)
+            new(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()) // ID tokena (već postoji)
         };
 
         // Kreiranje validnog JWT tokena s odgovarajucom konfiguracijom, korisnickim tvrdnjama i potpisujemo ga

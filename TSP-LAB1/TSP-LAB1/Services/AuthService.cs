@@ -41,7 +41,7 @@ public sealed class AuthService(
         var sessionId = Guid.NewGuid();
 
         // 6. Generiranje refresh tokena
-        var refreshToken = "refreshToken"; // TODO: Pronadjite vec pripremljenu metode za stvaranje tokena i napravite novi refresh token
+        var refreshToken = tokenService.GenerateRefreshToken(); // TODO: Pronadjite vec pripremljenu metode za stvaranje tokena i napravite novi refresh token
 
         var now = DateTimeOffset.UtcNow;
 
@@ -49,7 +49,7 @@ public sealed class AuthService(
         {
             Id = sessionId,
             UserId = user.Id,
-            CurrentRefreshTokenHash = "refreshToken", // TODO: Dodijelite kreirani refresh token sjednici koju kreirate.
+            CurrentRefreshTokenHash = tokenService.HashRefreshToken(refreshToken), // TODO: Dodijelite kreirani refresh token sjednici koju kreirate.
             CreatedAt = now,
             ExpiresAt = now.AddDays(_jwt.RefreshTokenDays)
         };
@@ -59,7 +59,7 @@ public sealed class AuthService(
         await db.SaveChangesAsync(ct);
 
         // 8. Izdavanje JWT access tokena
-        var accessToken = "JWT sa ID korisnika i ID sjednice"; // TODO: Pronadjite vec pripremljenu metode za stvaranje tokena i napravite novi Access token na temelju korisnika i ID sjednice
+        var accessToken = tokenService.CreateAccessToken(user, sessionId); // TODO: Pronadjite vec pripremljenu metode za stvaranje tokena i napravite novi Access token na temelju korisnika i ID sjednice
 
         // 9. Korisniku proslijerdite tokene koje će dalje upotrebljavati za autentifikaciju.
         return new TokenResponse(
