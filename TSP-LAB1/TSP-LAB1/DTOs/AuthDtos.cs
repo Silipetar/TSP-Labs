@@ -14,5 +14,5 @@ public sealed record TokenResponse(
     DateTimeOffset ExpiresAt);
 
 public sealed record RefreshTokenRequest(
-    [property: Required] string RefreshToken);
+    [Required] string RefreshToken);
 
