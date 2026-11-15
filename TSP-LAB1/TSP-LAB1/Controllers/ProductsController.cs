@@ -11,7 +11,7 @@ namespace TSP_LAB1.Controllers;
 [Route("api/products")]
 public sealed class ProductsController(IProductService products) : ControllerBase
 {
-    // TODO: osigurati javni pristup, odnosno, endpoint mora biti dostupan cak i bez autentifikacije
+    [AllowAnonymous]// TODO: osigurati javni pristup, odnosno, endpoint mora biti dostupan cak i bez autentifikacije
     [HttpGet]
     public async Task<ActionResult<List<ProductResponse>>> Get(CancellationToken ct)
     {
@@ -19,6 +19,7 @@ public sealed class ProductsController(IProductService products) : ControllerBas
         return Ok(result);
     }
 
+    [AllowAnonymous]
     [HttpGet("{id:int}")]
     public async Task<ActionResult<ProductResponse>> GetById(int id, CancellationToken ct)
     {
@@ -28,7 +29,7 @@ public sealed class ProductsController(IProductService products) : ControllerBas
             : Ok(result);
     }
 
-    //TODO: osigurati pristup samo autentificiranom administratoru.
+    [Authorize(Roles = "Admin")]//TODO: osigurati pristup samo autentificiranom administratoru.
     [HttpPost]
     public async Task<ActionResult<ProductResponse>> Create(CreateProductRequest request, CancellationToken ct)
     {
