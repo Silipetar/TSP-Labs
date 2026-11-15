@@ -10,7 +10,11 @@ public sealed class OrderOwnerHandler : AuthorizationHandler<OrderOwnerRequireme
     protected override Task HandleRequirementAsync(AuthorizationHandlerContext context, OrderOwnerRequirement requirement, CustomerOrder resource)
     {
         // TODO: Osigurati da korisnik iz konteksta može pristupiti svim narudžbama samo ako je administrator.
-
+        if (context.User.FindFirstValue("role") == "Admin")
+        {
+            context.Succeed(requirement);
+            return Task.CompletedTask;
+        }
 
         // Identitet korisnika dolazi iz validiranog JWT-a.
         var sub = context.User.FindFirstValue("sub");
@@ -19,7 +23,8 @@ public sealed class OrderOwnerHandler : AuthorizationHandler<OrderOwnerRequireme
             return Task.CompletedTask;
 
         // TODO: U suprotnom, osigurati da korisnik može pristupiti samo vlastitim narudzbama.
-
+        if (resource.CustomerId == userId)
+            context.Succeed(requirement);
 
         return Task.CompletedTask;
     }

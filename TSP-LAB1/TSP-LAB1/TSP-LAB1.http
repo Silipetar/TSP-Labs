@@ -6,7 +6,7 @@ Accept: application/json
 ###
 
 
-@baseUrl = http://localhost:5133
+@baseUrl = https://localhost:7192
 
 # Nakon uspješnih prijava zalijepiti dobivene tokene.
 @aliceToken = PASTE_ALICE_ACCESS_TOKEN
@@ -276,3 +276,61 @@ Content-Type: application/json
   "email": "alice@example.test",
   "password": "LabPass123!"
 }
+
+### Alice - popis narudzbi
+# Ocekivano: 200 OK, samo narudzba 101
+GET {{baseUrl}}/api/orders
+Authorization: Bearer {{aliceToken}}
+
+
+### Bob - popis narudzbi
+# Ocekivano: 200 OK, samo narudzba 102
+GET {{baseUrl}}/api/orders
+Authorization: Bearer {{bobToken}}
+
+
+### Admin - popis narudzbi
+# Ocekivano: 200 OK, narudzbe 101 i 102
+GET {{baseUrl}}/api/orders
+Authorization: Bearer {{adminToken}}
+
+
+### Alice dohvaca vlastitu narudzbu
+# Ocekivano: 200 OK
+GET {{baseUrl}}/api/orders/101
+Authorization: Bearer {{aliceToken}}
+
+
+### Alice pokusava dohvatiti Bobovu narudzbu
+# Ocekivano: 404 Not Found
+GET {{baseUrl}}/api/orders/102
+Authorization: Bearer {{aliceToken}}
+
+
+### Bob pokusava dohvatiti Alicinu narudzbu
+# Ocekivano: 404 Not Found
+GET {{baseUrl}}/api/orders/101
+Authorization: Bearer {{bobToken}}
+
+
+### Bob dohvaca vlastitu narudzbu
+# Ocekivano: 200 OK
+GET {{baseUrl}}/api/orders/102
+Authorization: Bearer {{bobToken}}
+
+
+### Admin dohvaca Alicinu narudzbu
+# Ocekivano: 200 OK
+GET {{baseUrl}}/api/orders/101
+Authorization: Bearer {{adminToken}}
+
+
+### Admin dohvaca Bobovu narudzbu
+# Ocekivano: 200 OK
+GET {{baseUrl}}/api/orders/102
+Authorization: Bearer {{adminToken}}
+
+
+### Narudzba bez tokena
+# Ocekivano: 401 Unauthorized
+GET {{baseUrl}}/api/orders/101

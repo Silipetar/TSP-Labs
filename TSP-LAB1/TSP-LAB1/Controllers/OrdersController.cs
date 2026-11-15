@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using TSP_LAB1.DTOs;
 using TSP_LAB1.Interfaces;
+using System.Security.Claims;
 
 namespace TSP_LAB1.Controllers;
 
@@ -21,8 +22,18 @@ public sealed class OrdersController(
     [HttpGet]
     public async Task<ActionResult<List<OrderResponse>>> GetAll(CancellationToken ct)
     {
-        var result = await orderService.GetAllAsync(ct);
-        return Ok(result);
+        var orders = await orderRepository.GetAllAsync(ct);
+
+        // Administrator vidi sve, ostali samo vlastite narudžbe.
+        if (User.FindFirstValue("role") != "Admin")
+        {
+            if (!Guid.TryParse(User.FindFirstValue("sub"), out var userId))
+                return Unauthorized();
+
+            orders = orders.Where(o => o.CustomerId == userId).ToList();
+        }
+
+        return Ok(orders.Select(o => new OrderResponse(o.Id, o.Description, o.Total, o.CreatedAt)).ToList());
     }
 
     // TODO: osigurati da autentificirani korisnik vidi samo svoju narudzbu.
@@ -41,7 +52,7 @@ public sealed class OrdersController(
         if (!authorizationResult.Succeeded)
         {
             // TODO: osigurati odgovarajuci Error Status Response umjesto OK.
-            return Ok();
+            return NotFound();
         }
 
         // 3. Tek nakon autorizacije vraćamo podatke.
