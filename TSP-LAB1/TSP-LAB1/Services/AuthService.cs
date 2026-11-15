@@ -7,6 +7,8 @@ using TSP_LAB1.DTOs;
 using TSP_LAB1.Interfaces;
 using TSP_LAB1.Models;
 using TSP_LAB1.Security;
+using System.Security.Cryptography;
+using System.Text;
 
 namespace TSP_LAB1.Services;
 
@@ -33,7 +35,8 @@ public sealed class AuthService(
         // 4. TODO: Provjera statusa korisničkog računa
 
         // -- Ako je korisnik uspjesno identificiran, nastavljamo s kreiranjem tokena i sesija.
-
+        if (user is null || !user.IsActive || !PasswordMatches(user.PasswordHash, request.Password))
+            return null;
         // 5. Generiranje identifikatora sesije
         var sessionId = Guid.NewGuid();
 
@@ -65,6 +68,10 @@ public sealed class AuthService(
             TokenType: "Bearer",
             ExpiresAt: DateTimeOffset.UtcNow.AddMinutes(_jwt.AccessTokenMinutes));
     }
+    private static bool PasswordMatches(string stored, string provided) =>
+    CryptographicOperations.FixedTimeEquals(
+        Encoding.UTF8.GetBytes(stored),
+        Encoding.UTF8.GetBytes(provided));
 
     /// <summary>
     /// Invalidates the current session for authenticated user.
